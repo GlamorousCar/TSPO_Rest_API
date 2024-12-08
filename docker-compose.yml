@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+
+  postgres:
+    container_name: postgres
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: bookdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - dbdata:/var/lib/postgresql/data
+    networks:
+      - app-network
+  api:
+    container_name: webapi
+    build:
+      context: .
+    depends_on:
+      - "postgres"
+    restart: on-failure
+    environment:
+      API_SERVER_ADDR: ":8080"
+      POSTGRES_USER: postgres
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DBNAME: bookdb
+    ports:
+      - 8080:8080
+    networks:
+      - app-network
+volumes:
+  dbdata:
+networks:
+  app-network:
+    driver: bridge
+
+
