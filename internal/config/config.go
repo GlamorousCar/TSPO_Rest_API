@@ -5,16 +5,17 @@ import (
 )
 
 type Configuration struct {
-	ServerAddr string
-	ServerPort string
-	LogLevel   string //INFO, DEBUG, WARNING
-	DBFlavor   string
-	DBHost     string
-	DBPort     string
-	DBUser     string
-	DBPass     string
-	DBName     string
-	JWTSecret  string
+	ServerAddr       string
+	ServerPort       string
+	LogLevel         string //INFO, DEBUG, WARNING
+	DBFlavor         string
+	DBHost           string
+	DBPort           string
+	DBUser           string
+	DBPass           string
+	DBName           string
+	JWTSecret        string
+	JWTRefreshSecret string
 }
 
 // Construct() использует метод os.LookupEnv() для получения значений переменных окружения.
@@ -28,6 +29,7 @@ func (c *Configuration) Construct() {
 	c.DBUser = os.Getenv("DB_USER")
 	c.DBPass = os.Getenv("DB_PASSWORD")
 	c.DBName = os.Getenv("DB_NAME")
-	//c.JWTSecret = "your-secret-key"
+	c.JWTSecret = "your-secret-key"
+	c.JWTRefreshSecret = "your-refresh-secret-key"
 
 }

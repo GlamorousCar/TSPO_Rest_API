@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"tspo_server/internal/app"
+	"tspo_server/internal/auth"
 	"tspo_server/internal/config"
 	"tspo_server/internal/db"
 	"tspo_server/pkg/logger"
@@ -34,24 +35,26 @@ func main() {
 
 	repo, err := db.NewBookRepository(database)
 
-	// Initialize database
-
 	handler := app.NewHandler(repo, logger)
 
-	// Setup router
 	mux := http.NewServeMux()
 
-	// Apply JWT middleware to all book routes
-	//jwtMiddleware := auth.NewJWTMiddleware(c.JWTSecret)
+	jwtMiddleware := auth.NewJWTMiddleware(c.JWTSecret, c.JWTRefreshSecret)
 
-	// Register routes
+	authMiddleware := app.NewAuthMiddleware(jwtMiddleware)
+
+	mux.HandleFunc("POST /auth/register", jwtMiddleware.Register)
+	mux.HandleFunc("POST /auth/login", jwtMiddleware.Login)
+	mux.HandleFunc("POST /auth/refresh", jwtMiddleware.RefreshToken)
+	mux.HandleFunc("POST /auth/logout", jwtMiddleware.Logout)
+
 	mux.HandleFunc("GET /books", handler.GetBooks)
 	mux.HandleFunc("GET /books/{id}", handler.GetBook)
 	mux.HandleFunc("POST /books", handler.CreateBook)
 	mux.HandleFunc("PUT /books/{id}", handler.UpdateBook)
 	mux.HandleFunc("DELETE /books/{id}", handler.DeleteBook)
 
-	// Start server
+	mux.HandleFunc("GET /books_with_auth", authMiddleware.RequireAuth(handler.GetBooks))
 
 	srv := &http.Server{
 		Addr: os.Getenv("API_SERVER_ADDR"),
